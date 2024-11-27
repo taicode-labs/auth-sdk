@@ -30,12 +30,12 @@ export interface ParsedSignData {
 }
 
 /** 检查 payload 格式，不验证字段的值 */
-export function isValidPayload(payload: unknown): payload is SignPayload {
+export function isValidSignPayload(payload: unknown): payload is SignPayload {
   const parseResult = SignPayloadSchema.safeParse(payload)
   return parseResult.success
 }
 
-export interface Secret {
+export interface SignSecret {
   secretKey: string
   secretValue: string
 }
@@ -43,14 +43,14 @@ export interface Secret {
 /**
  * 生成一个 JSON Web Token (JWT)。
  *
- * @param {Secret} secret - 用于加密和解密的密钥或私钥。
+ * @param {SignSecret} secret - 用于加密和解密的密钥或私钥。
  * @param {SignPayload} payload - 要包含在 JWT 中的有效负载数据。
  * @returns {string} 返回生成的 JWT 字符串。
  *
  * @throws {Error} 如果生成 token 失败，将抛出错误。
  */
-export function signToken(secret: Secret, payload: SignPayload): string {
-  if (!isValidPayload(payload)) throw new Error('invalid payload')
+export function signToken(secret: SignSecret, payload: SignPayload): string {
+  if (!isValidSignPayload(payload)) throw new Error('invalid payload')
 
   // Sort the object keys to ensure consistent ordering
   const dataString = jsonStringify(payload)
@@ -70,12 +70,12 @@ export function signToken(secret: Secret, payload: SignPayload): string {
  * 验证一个 JSON Web Token (JWT) 的有效性，包含签名验证和过期检查。
  *
  * @param {string} token - 要验证的 JWT 字符串。
- * @param {Secret} secret - 用于验证的密钥或私钥。
+ * @param {SignSecret} secret - 用于验证的密钥或私钥。
  * @returns {Promise<boolean>} 返回一个 Promise，解析为布尔值，指示 token 是否有效。
  *
  * @throws {Error} 如果验证过程中发生错误，将抛出错误。
  */
-export async function verifyToken(token: string, secret: Secret): Promise<boolean> {
+export async function verifyToken(token: string, secret: SignSecret): Promise<boolean> {
   const parts = token.split(':')
 
   if (parts.length !== 3) return false

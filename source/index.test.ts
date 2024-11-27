@@ -1,12 +1,12 @@
 import dayjs from 'dayjs'
-import { signToken, SignPayload, parseToken, verifyToken, isExpiredTokenPayload, isValidPayload, Secret } from './index'
+import { signToken, SignPayload, parseToken, verifyToken, isExpiredTokenPayload, isValidSignPayload, SignSecret } from './index'
 
 describe('@helper/token test', () => {
   it('signToken & parseToken & verifyToken should work', async () => {
     interface TestCase {
       input: {
         payload: SignPayload
-        secret: Secret
+        secret: SignSecret
       }
       output: {
         token: string
@@ -169,7 +169,7 @@ describe('@helper/token test', () => {
 
     for (let index = 0; index < testCases.length; index++) {
       const testCase = testCases[index]
-      expect(isValidPayload(testCase.input)).toEqual(testCase.output)
+      expect(isValidSignPayload(testCase.input)).toEqual(testCase.output)
     }
   })
 })
