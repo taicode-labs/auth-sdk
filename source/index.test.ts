@@ -1,12 +1,12 @@
 import dayjs from 'dayjs'
-import { signToken, SignPayload, parseToken, verifyToken, isExpiredToken, isValidPayload } from './index'
+import { signToken, SignPayload, parseToken, verifyToken, isExpiredTokenPayload, isValidPayload, Secret } from './index'
 
 describe('@helper/token test', () => {
   it('signToken & parseToken & verifyToken should work', async () => {
     interface TestCase {
       input: {
         payload: SignPayload
-        secret: [string, string]
+        secret: Secret
       }
       output: {
         token: string
@@ -27,7 +27,10 @@ describe('@helper/token test', () => {
             username: 'test',
           }
         },
-        secret: ['test', 'test'],
+        secret: {
+          secretKey: 'test',
+          secretValue: 'test'
+        },
       },
       output: {
         token: 'test:LiYiKKE_wahKBZGLWvUcQIKj5HC7WcBxqpuiGo5g330:eyJjcmVhdGVkVGltZSI6IjIwMjAtMTItMzFUMTY6MDA6MDAuMDAwWiIsImRhdGEiOnsidXNlcklkIjoidGVzdCIsInVzZXJuYW1lIjoidGVzdCJ9LCJleHBpcmVkVGltZSI6IjIwMjAtMTItMzFUMTY6MDA6MDAuMDAwWiJ9',
@@ -49,7 +52,10 @@ describe('@helper/token test', () => {
             other3: 'test',
           }
         },
-        secret: ['test', 'test'],
+        secret: {
+          secretKey: 'test',
+          secretValue: 'test'
+        },
       },
       output: {
         token: 'test:fzl93RfPNekvCD_o7HLNo4lwVnYkJY6_K_o1lhGSCn0:eyJjcmVhdGVkVGltZSI6IjIwMjAtMTItMzFUMTY6MDA6MDAuMDAwWiIsImRhdGEiOnsib3RoZXIxIjoidGVzdCIsIm90aGVyMiI6InRlc3QiLCJvdGhlcjMiOiJ0ZXN0IiwidXNlcklkIjoidGVzdCIsInVzZXJuYW1lIjoidGVzdCJ9LCJleHBpcmVkVGltZSI6IjIwMjAtMTItMzFUMTY6MDA6MDAuMDAwWiJ9',
@@ -59,13 +65,16 @@ describe('@helper/token test', () => {
 
     for (let index = 0; index < testCases.length; index++) {
       const testCase = testCases[index]
-      const result = await signToken(testCase.input.secret[0], testCase.input.secret[1], testCase.input.payload)
+      const result = await signToken(testCase.input.secret, testCase.input.payload)
       expect(result).toEqual(testCase.output.token)
 
       const parseTokenResult = await parseToken(result)
-      expect(parseTokenResult).toEqual(testCase.input.payload)
+      expect(parseTokenResult).toEqual({
+        secretKey: testCase.input.secret.secretKey,
+        payload: testCase.input.payload
+      })
 
-      const verifyTokenResult = await verifyToken(result, testCase.input.secret[1])
+      const verifyTokenResult = await verifyToken(result, testCase.input.secret)
       expect(verifyTokenResult).toEqual(!testCase.output.expired)
     }
   })
@@ -79,7 +88,7 @@ describe('@helper/token test', () => {
         ? dayjs().subtract(1, 'day').toISOString()
         : dayjs().add(1, 'day').toISOString()
 
-      const result = isExpiredToken({
+      const result = isExpiredTokenPayload({
         expiredTime,
         createdTime: dayjs().toISOString(),
         data: {
@@ -133,7 +142,7 @@ describe('@helper/token test', () => {
       },
       output: false
     })
-    
+
     testCases.push({
       input: {
         expiredTime: dayjs().toISOString(),
