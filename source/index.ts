@@ -24,6 +24,11 @@ const SignPayloadSchema = z.object({
   }).catchall(z.unknown())
 })
 
+export interface ParsedSignData {
+  secretKey: string
+  payload: SignPayload
+}
+
 /** 检查 payload 格式，不验证字段的值 */
 export function isValidPayload(payload: unknown): payload is SignPayload {
   const parseResult = SignPayloadSchema.safeParse(payload)
@@ -48,13 +53,14 @@ export function signToken(secretKey: string, secretValue: string, data: SignPayl
 }
 
 /** 解析 token，但是不做除了格式之外的验证和检查 */
-export async function parseToken(token: string): Promise<SignPayload | null> {
+export async function parseToken(token: string): Promise<ParsedSignData | null> {
   // Split the token into its components
   const parts = token.split(':')
   if (parts.length !== 3) {
     return null
   }
 
+  const secretKey = parts[0]
   const base64DataString = parts[2]
 
   // Decode the Base64 URL string to get the original payload
@@ -62,7 +68,8 @@ export async function parseToken(token: string): Promise<SignPayload | null> {
 
   // Parse the payload back to an object
   try {
-    return JSON.parse(decodedDataString)
+    const payload = JSON.parse(decodedDataString)
+    return { secretKey, payload } satisfies ParsedSignData
   } catch (error) {
     return null
   }
@@ -93,7 +100,7 @@ export async function verifyToken(token: string, secretValue: string): Promise<b
   const tokenInfo = await parseToken(token)
 
   if (tokenInfo == null) return false
-  if (isExpiredToken(tokenInfo)) return false
+  if (isExpiredToken(tokenInfo.payload)) return false
 
   return recreatedSignString !== signString
 }

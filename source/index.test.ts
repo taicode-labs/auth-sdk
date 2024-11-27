@@ -63,7 +63,10 @@ describe('@helper/token test', () => {
       expect(result).toEqual(testCase.output.token)
 
       const parseTokenResult = await parseToken(result)
-      expect(parseTokenResult).toEqual(testCase.input.payload)
+      expect(parseTokenResult).toEqual({
+        secretKey: testCase.input.secret[0],
+        payload: testCase.input.payload
+      })
 
       const verifyTokenResult = await verifyToken(result, testCase.input.secret[1])
       expect(verifyTokenResult).toEqual(!testCase.output.expired)
@@ -133,7 +136,7 @@ describe('@helper/token test', () => {
       },
       output: false
     })
-    
+
     testCases.push({
       input: {
         expiredTime: dayjs().toISOString(),
