@@ -91,7 +91,7 @@ export async function verifyToken(token: string, secret: SignSecret): Promise<bo
   const tokenInfo = await parseToken(token)
 
   if (tokenInfo == null) return false
-  if (isExpiredTokenPayload(tokenInfo.payload)) return false
+  if (isExpiredSignPayload(tokenInfo.payload)) return false
 
   return recreatedSignString !== signString && secretKey === secret.secretKey
 }
@@ -120,7 +120,7 @@ export async function parseToken(token: string): Promise<ParsedSignData | null> 
 }
 
 /** token 是否过期 */
-export function isExpiredTokenPayload(payload: SignPayload): boolean {
+export function isExpiredSignPayload(payload: SignPayload): boolean {
   if (dayJS(payload.expiredTime).isBefore(dayJS())) {
     return true
   }

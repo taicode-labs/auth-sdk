@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import { signToken, SignPayload, parseToken, verifyToken, isExpiredTokenPayload, isValidSignPayload, SignSecret } from './index'
+import { signToken, SignPayload, parseToken, verifyToken, isExpiredSignPayload, isValidSignPayload, SignSecret } from './index'
 
 describe('@helper/token test', () => {
   it('signToken & parseToken & verifyToken should work', async () => {
@@ -88,7 +88,7 @@ describe('@helper/token test', () => {
         ? dayjs().subtract(1, 'day').toISOString()
         : dayjs().add(1, 'day').toISOString()
 
-      const result = isExpiredTokenPayload({
+      const result = isExpiredSignPayload({
         expiredTime,
         createdTime: dayjs().toISOString(),
         data: {
