@@ -1,27 +1,38 @@
+import { z } from 'zod'
 import dayJS from 'dayjs'
 import { HmacSHA256, enc } from 'crypto-js'
 import jsonStringify from 'json-stable-stringify'
 
-type Version = 'v1' | 'v2'
-
-export interface SignPayload {
-  version: Version,
-  createdTime: string
-  expiredTime?: string
-  data: Record<string, unknown>
+export interface SignPayloadData {
+  userId: string
+  username: string
+  [key: string]: unknown
 }
 
+export interface SignPayload {
+  createdTime: string
+  expiredTime?: string
+  data: SignPayloadData
+}
+
+const SignPayloadSchema = z.object({
+  expiredTime: z.string().optional(),
+  createdTime: z.string(),
+  data: z.object({
+    userId: z.string(),
+    username: z.string(),
+  }).catchall(z.unknown())
+})
+
 /** 检查 payload 格式，不验证字段的值 */
-function isValidPayload(payload: unknown): payload is SignPayload {
-  return !!(
-    payload
-    && typeof payload === 'object'
-    && 'expiredTime' in payload
-    && 'createdTime' in payload
-  )
+export function isValidPayload(payload: unknown): payload is SignPayload {
+  const parseResult = SignPayloadSchema.safeParse(payload)
+  return parseResult.success
 }
 
 export function signToken(secretKey: string, secretValue: string, data: SignPayload): string {
+  if (!isValidPayload(data)) throw new Error('invalid payload')
+
   // Sort the object keys to ensure consistent ordering
   const dataString = jsonStringify(data)
 
@@ -72,7 +83,6 @@ export async function verifyToken(token: string, secretValue: string): Promise<b
 
   if (parts.length !== 3) return false
 
-  const secretKey = parts[0]
   const signString = parts[1]
   const base64DataString = parts[2]
 
