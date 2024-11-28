@@ -4,8 +4,6 @@ import { HmacSHA256, enc } from 'crypto-js'
 import jsonStringify from 'json-stable-stringify'
 
 export interface SignPayloadData {
-  userId: string
-  username: string
   [key: string]: unknown
 }
 
@@ -18,10 +16,7 @@ export interface SignPayload {
 const SignPayloadSchema = z.object({
   expiredTime: z.string().optional(),
   createdTime: z.string(),
-  data: z.object({
-    userId: z.string(),
-    username: z.string(),
-  }).catchall(z.unknown())
+  data: z.record(z.string(), z.any()),
 })
 
 export interface ParsedSignData {

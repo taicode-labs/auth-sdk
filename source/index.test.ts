@@ -138,18 +138,7 @@ describe('@helper/token test', () => {
       input: {
         expiredTime: dayjs().toISOString(),
         createdTime: dayjs().toISOString(),
-        data: {}
-      },
-      output: false
-    })
-
-    testCases.push({
-      input: {
-        expiredTime: dayjs().toISOString(),
-        createdTime: dayjs().toISOString(),
-        data: {
-          userId: 'test'
-        }
+        data: null
       },
       output: false
     })
