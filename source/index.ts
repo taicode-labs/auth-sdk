@@ -122,3 +122,10 @@ export function isExpiredSignPayload(payload: SignPayload): boolean {
 
   return false
 }
+
+export default {
+  signToken,
+  parseToken,
+  verifyToken,
+  isExpiredSignPayload
+}
