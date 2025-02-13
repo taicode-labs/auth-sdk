@@ -91,7 +91,7 @@ export async function verifyToken(token: string, secret: SignSecret): Promise<bo
 }
 
 /** 解析 token，但是不做除了格式之外的验证和检查 */
-export async function parseToken(token: string): Promise<ParsedToken | null> {
+export async function parseToken<T extends {} = {}>(token: string): Promise<ParsedToken<T> | null> {
   // Split the token into its components
   const parts = token.split(':')
   if (parts.length !== 3) {
