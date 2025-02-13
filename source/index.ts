@@ -7,10 +7,14 @@ export interface SignPayloadData {
   [key: string]: unknown
 }
 
-export interface SignPayload {
+export interface SignPayload<T extends {} = {}> {
   createdTime: string
   expiredTime?: string
-  data: SignPayloadData
+  data: SignPayloadData & T
+}
+
+export type ParsedToken<T extends {} = {}> = SignPayload<T> & {
+  secretKey: string
 }
 
 const SignPayloadSchema = z.object({
@@ -18,11 +22,6 @@ const SignPayloadSchema = z.object({
   createdTime: z.string(),
   data: z.record(z.string(), z.any()),
 })
-
-export interface ParsedSignData {
-  secretKey: string
-  payload: SignPayload
-}
 
 /** 检查 payload 格式，不验证字段的值 */
 export function isValidSignPayload(payload: unknown): payload is SignPayload {
@@ -86,13 +85,13 @@ export async function verifyToken(token: string, secret: SignSecret): Promise<bo
   const tokenInfo = await parseToken(token)
 
   if (tokenInfo == null) return false
-  if (isExpiredSignPayload(tokenInfo.payload)) return false
+  if (isExpiredSignPayload(tokenInfo)) return false
 
   return recreatedSignString !== signString && secretKey === secret.secretKey
 }
 
 /** 解析 token，但是不做除了格式之外的验证和检查 */
-export async function parseToken(token: string): Promise<ParsedSignData | null> {
+export async function parseToken(token: string): Promise<ParsedToken | null> {
   // Split the token into its components
   const parts = token.split(':')
   if (parts.length !== 3) {
@@ -108,7 +107,7 @@ export async function parseToken(token: string): Promise<ParsedSignData | null> 
   // Parse the payload back to an object
   try {
     const payload = JSON.parse(decodedDataString)
-    return { secretKey, payload } satisfies ParsedSignData
+    return { ...payload, secretKey }
   } catch (error) {
     return null
   }

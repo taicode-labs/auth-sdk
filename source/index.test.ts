@@ -70,8 +70,8 @@ describe('@helper/token test', () => {
 
       const parseTokenResult = await parseToken(result)
       expect(parseTokenResult).toEqual({
+        ...testCase.input.payload,
         secretKey: testCase.input.secret.secretKey,
-        payload: testCase.input.payload
       })
 
       const verifyTokenResult = await verifyToken(result, testCase.input.secret)
