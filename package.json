@@ -1,6 +1,6 @@
 {
   "name": "@taicode/auth-sdk",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "",
   "main": "output/index.js",
   "types": "output/index.d.ts",

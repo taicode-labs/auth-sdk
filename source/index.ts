@@ -23,6 +23,13 @@ const SignPayloadSchema = z.object({
   data: z.record(z.string(), z.any()),
 })
 
+/**
+ * 检查给定的字符串是否是 ApiKey
+ */
+export function isApiKey(token: string) {
+  return token.startsWith('API-KEY-')
+}
+
 /** 检查 payload 格式，不验证字段的值 */
 export function isValidSignPayload(payload: unknown): payload is SignPayload {
   const parseResult = SignPayloadSchema.safeParse(payload)
@@ -70,6 +77,8 @@ export function signToken(secret: SignSecret, payload: SignPayload): string {
  * @throws {Error} 如果验证过程中发生错误，将抛出错误。
  */
 export async function verifyToken(token: string, secret: SignSecret): Promise<boolean> {
+  if (isApiKey(token)) return false
+
   const parts = token.split(':')
 
   if (parts.length !== 3) return false
@@ -92,6 +101,8 @@ export async function verifyToken(token: string, secret: SignSecret): Promise<bo
 
 /** 解析 token，但是不做除了格式之外的验证和检查 */
 export async function parseToken<T extends {} = {}>(token: string): Promise<ParsedToken<T> | null> {
+  if (isApiKey(token)) return null
+
   // Split the token into its components
   const parts = token.split(':')
   if (parts.length !== 3) {
@@ -123,6 +134,7 @@ export function isExpiredSignPayload(payload: SignPayload): boolean {
 }
 
 export default {
+  isApiKey,
   signToken,
   parseToken,
   verifyToken,
