@@ -7,14 +7,21 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
           registry-url: https://registry.npmjs.org/
+      - name: Update npm
+        run: npm install --global npm@latest
       - run: npm ci
       - run: npm run build
+      # 使用 NPM Trusted Publishing（OIDC）发布，无需配置 NPM_TOKEN。
+      # 需要在 npm 包的 Settings -> Trusted Publisher 中绑定：
+      #   Provider = GitHub Actions, Organization = taicode-labs,
+      #   Repository = auth-sdk, Workflow filename = npm-publish.yml
       - run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
