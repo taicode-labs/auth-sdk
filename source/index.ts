@@ -24,10 +24,19 @@ const SignPayloadSchema = z.object({
 })
 
 /**
+ * API Key 的固定前缀。
+ *
+ * 必须与 account 服务签发 API Key 时使用的前缀保持一致
+ * （见 account `modules/user/api-key/service.ts`，格式为 `apikey-{32位随机字符}`）。
+ * 各服务（account / observai）在从 Authorization 头分流凭证时也依赖该前缀。
+ */
+export const API_KEY_PREFIX = 'apikey-'
+
+/**
  * 检查给定的字符串是否是 ApiKey
  */
 export function isApiKey(token: string) {
-  return token.startsWith('API-KEY-')
+  return token.startsWith(API_KEY_PREFIX)
 }
 
 /** 检查 payload 格式，不验证字段的值 */
@@ -96,7 +105,7 @@ export async function verifyToken(token: string, secret: SignSecret): Promise<bo
   if (tokenInfo == null) return false
   if (isExpiredSignPayload(tokenInfo)) return false
 
-  return recreatedSignString !== signString && secretKey === secret.secretKey
+  return recreatedSignString === signString && secretKey === secret.secretKey
 }
 
 /** 解析 token，但是不做除了格式之外的验证和检查 */
@@ -135,6 +144,7 @@ export function isExpiredSignPayload(payload: SignPayload): boolean {
 
 export default {
   isApiKey,
+  API_KEY_PREFIX,
   signToken,
   parseToken,
   verifyToken,
